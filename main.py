@@ -558,7 +558,7 @@ def index():
 
 def set_webhook():
     bot.remove_webhook()
-    bot.set_webhook(url='https://your-render-app-name.onrender.com/' + TOKEN)
+    bot.set_webhook(url='https://v1-aihk.onrender.com/' + TOKEN)
 
 if __name__ == "__main__":
     # عند التشغيل على render، استخدم Webhook
