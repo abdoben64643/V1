@@ -7,10 +7,12 @@ from telebot import types
 import psutil
 import io
 import tokenize
-from threading import Thread
+from threading import Thread, Timer
 from flask import Flask, request
+import requests
+import time
 
-TOKEN = '7925615954:AAEVK1eD-QUXUY5dehfqYB_M__pYgnnc5P4'
+TOKEN = '7925615954:AAFL4GdEgzRbIM1K7AbIox0JB_vj2AIushQ'
 ADMIN_ID = '6324866336'
 CHANNEL_USERNAME = '@d0k_83'  # اسم القناة للاشتراك الإجباري
 CHANNEL_ID = '-1002694893131'     # آيدي القناة للتحقق
@@ -25,6 +27,22 @@ banned_users = set()
 # إنشاء مجلد uploaded_files إذا لم يكن موجوداً
 if not os.path.exists(uploaded_files_dir):
     os.makedirs(uploaded_files_dir)
+
+# وظيفة نبضات الحياة للحفاظ على الخدمة نشطة
+def keep_alive():
+    while True:
+        try:
+            if 'RENDER' in os.environ:
+                requests.get('https://v1-aihk.onrender.com/')
+            time.sleep(180)  # إرسال طلب كل 3 دقائق
+        except Exception as e:
+            print(f"Error in keep_alive: {e}")
+            time.sleep(60)
+
+# بدء خيط نبضات الحياة في الخلفية
+if 'RENDER' in os.environ:
+    keep_alive_thread = Thread(target=keep_alive, daemon=True)
+    keep_alive_thread.start()
 
 def check_subscription(user_id):
     """التحقق من اشتراك المستخدم في القناة"""
