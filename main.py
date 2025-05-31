@@ -12,7 +12,7 @@ from flask import Flask, request
 import requests
 import time
 
-TOKEN = '7925615954:AAFqG1RibmWzPZwSR2E4tNo5zXdslvQ44fc'
+TOKEN = '7925615954:AAGmUMC-CpnommIM2eFv6Ezf1CsXUi-ty_8'
 ADMIN_ID = '6324866336'
 CHANNEL_USERNAME = '@d0k_83'  # اسم القناة للاشتراك الإجباري
 CHANNEL_ID = '-1002694893131'     # آيدي القناة للتحقق
