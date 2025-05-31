@@ -7,15 +7,17 @@ from telebot import types
 import psutil
 import io
 import tokenize
-from threading import Thread, Timer
+from threading import Thread
 from flask import Flask, request
 import requests
 import time
+import atexit
 
 TOKEN = '7925615954:AAGmUMC-CpnommIM2eFv6Ezf1CsXUi-ty_8'
 ADMIN_ID = '6324866336'
-CHANNEL_USERNAME = '@d0k_83'  # اسم القناة للاشتراك الإجباري
-CHANNEL_ID = '-1002694893131'     # آيدي القناة للتحقق
+CHANNEL_USERNAME = '@d0k_83'
+CHANNEL_ID = '-1002694893131'
+UPTIME_URL = 'https://api.uptimerobot.com/v2/getMonitors'  # استبدل هذا برابط Uptime Robot الخاص بك
 
 bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
@@ -28,21 +30,32 @@ banned_users = set()
 if not os.path.exists(uploaded_files_dir):
     os.makedirs(uploaded_files_dir)
 
-# وظيفة نبضات الحياة للحفاظ على الخدمة نشطة
-def keep_alive():
-    while True:
-        try:
-            if 'RENDER' in os.environ:
-                requests.get('https://v1-aihk.onrender.com/')
-            time.sleep(30)  # إرسال طلب كل 3 دقائق
-        except Exception as e:
-            print(f"Error in keep_alive: {e}")
+# إعداد نظام المراقبة
+class Monitor:
+    def __init__(self):
+        self.last_active = time.time()
+        self.active = True
+        self.thread = Thread(target=self.monitor_activity, daemon=True)
+        self.thread.start()
+
+    def monitor_activity(self):
+        while self.active:
+            # إرسال طلب إلى Uptime Robot كل 5 دقائق
+            if 'RENDER' in os.environ and time.time() - self.last_active > 300:
+                try:
+                    requests.get('https://v1-aihk.onrender.com/')
+                    self.last_active = time.time()
+                except Exception as e:
+                    print(f"Error in monitor activity: {e}")
             time.sleep(60)
 
-# بدء خيط نبضات الحياة في الخلفية
-if 'RENDER' in os.environ:
-    keep_alive_thread = Thread(target=keep_alive, daemon=True)
-    keep_alive_thread.start()
+    def stop(self):
+        self.active = False
+
+monitor = Monitor()
+
+# تسجيل وظيفة الإيقاف
+atexit.register(monitor.stop)
 
 def check_subscription(user_id):
     """التحقق من اشتراك المستخدم في القناة"""
@@ -380,13 +393,13 @@ def stop_bot(script_path, chat_id, delete=False):
         process = bot_scripts.get(chat_id, {}).get('process')
         if process and psutil.pid_exists(process.pid):
             parent = psutil.Process(process.pid)
-            for child in parent.children(recursive=True):  # Terminate all child processes
+            for child in parent.children(recursive=True):
                 child.terminate()
             parent.terminate()
-            parent.wait()  # Ensure the process has been terminated
+            parent.wait()
             bot_scripts[chat_id]['process'] = None
             if delete:
-                os.remove(script_path)  # Remove the script if delete flag is set
+                os.remove(script_path)
                 bot.send_message(chat_id, f"تم حذف {script_name} من الاستضافة.")
             else:
                 bot.send_message(chat_id, f"تم إيقاف {script_name} بنجاح.")
@@ -573,6 +586,10 @@ def webhook():
 @app.route('/')
 def index():
     return 'Bot is running!'
+
+@app.route('/ping')
+def ping():
+    return 'pong', 200
 
 def set_webhook():
     bot.remove_webhook()
