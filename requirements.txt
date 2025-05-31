@@ -1,3 +1,4 @@
 pytelegrambotapi
-Flask
+flask
+requests
 psutil
