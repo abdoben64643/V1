@@ -12,7 +12,7 @@ from flask import Flask, request
 import requests
 import time
 
-TOKEN = '7925615954:AAFL4GdEgzRbIM1K7AbIox0JB_vj2AIushQ'
+TOKEN = '7925615954:AAFqG1RibmWzPZwSR2E4tNo5zXdslvQ44fc'
 ADMIN_ID = '6324866336'
 CHANNEL_USERNAME = '@d0k_83'  # اسم القناة للاشتراك الإجباري
 CHANNEL_ID = '-1002694893131'     # آيدي القناة للتحقق
@@ -34,7 +34,7 @@ def keep_alive():
         try:
             if 'RENDER' in os.environ:
                 requests.get('https://v1-aihk.onrender.com/')
-            time.sleep(180)  # إرسال طلب كل 3 دقائق
+            time.sleep(30)  # إرسال طلب كل 3 دقائق
         except Exception as e:
             print(f"Error in keep_alive: {e}")
             time.sleep(60)
